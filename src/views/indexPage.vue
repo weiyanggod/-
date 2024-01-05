@@ -28,6 +28,7 @@ let railBottomColor = ref('#1791fc')
 let tableData = ref([])
 let polygonList = []
 let signList = []
+let locationQueryValue = ref('')
 
 // 获取列表
 const getList = () => {
@@ -60,13 +61,15 @@ const initMap = async () => {
       'AMap.Scale',
       'AMap.MapType',
       'AMap.MouseTool',
-      'AMap.GeoJSON'
+      'AMap.GeoJSON',
+      'AMap.PlaceSearch',
+      'AMap.AutoComplete'
     ],
     function () {
       let tool = new AMap.ToolBar()
       let scale = new AMap.Scale()
       let type = new AMap.MapType({
-        defaultType: 0
+        defaultType: 1
       })
       map.addControl(tool)
       map.addControl(scale)
@@ -75,7 +78,19 @@ const initMap = async () => {
   )
   map.clearMap()
   createShroud()
+  var auto = new AMap.Autocomplete({ input: 'locationQuery', city: '嘉兴市' })
+  //构造地点查询类
+  var placeSearch = new AMap.PlaceSearch({
+    map: map, // 展现结果的地图实例
+    autoFitView: true // 是否自动调整地图视野使绘制的 Marker点都处于视口的可见范围
+  })
 
+  //关键字查询
+  auto.on('select', select) //注册监听，当选中某条记录时会触发
+  function select(e) {
+    placeSearch.setCity(e.poi.adcode)
+    placeSearch.search(locationQueryValue.value) //关键字查询查询
+  }
   // 事件
   mouseTool = new AMap.MouseTool(map)
   mouseTool.on('draw', function (event) {
@@ -104,7 +119,7 @@ const createShroud = () => {
         fillColor: data.properties.railBottomColor,
         strokeColor: data.properties.railBorderColor
       })
-      addSign(item)
+      addSign(item, map.getFitZoomAndCenterByOverlays([polygon]))
       map.add(polygon)
       polygonList.push({ item, polygon })
     })
@@ -235,7 +250,7 @@ const getCenter = (row) => {
 }
 
 // 添加标记
-const addSign = (item) => {
+const addSign = (item, zoom) => {
   // 先删除点标记
   signList.forEach((i) => {
     if (i.item === item) {
@@ -252,16 +267,17 @@ const addSign = (item) => {
     style: {
       padding: '10px',
       'border-radius': '10px',
-      'background-color': 'white',
+      'background-color': 'transparent',
       'max-width': '150px',
-      'border-width': 0,
       'box-shadow': '0 2px 6px 0 rgba(114, 124, 245, .5)',
       'text-align': 'center',
       'font-size': '16px',
       'word-wrap': 'break-word',
       'white-space': 'pre-wrap',
-      color: '#000'
-    }
+      border: '1px solid #fff',
+      color: '#fff'
+    },
+    zooms: [zoom[0] - 4, zoom[0] + 2]
   })
   signList.push({ item, sign })
 }
@@ -364,6 +380,16 @@ onMounted(() => {
           </template>
         </el-table-column>
       </el-table>
+      <div class="locationQuery">
+        <el-card class="box-card">
+          <el-input
+            id="locationQuery"
+            v-model="locationQueryValue"
+            placeholder="请输入关键字"
+            clearable
+          ></el-input>
+        </el-card>
+      </div>
     </el-col>
   </el-row>
 </template>
@@ -377,5 +403,11 @@ onMounted(() => {
 }
 ::v-deep .amap-copyright {
   opacity: 0;
+  border: 1px solid #fff;
+}
+.locationQuery {
+  position: fixed;
+  top: 20px;
+  right: 40%;
 }
 </style>
