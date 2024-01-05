@@ -10,7 +10,7 @@ let coveringList = []
 let groupList = reactive([
   {
     value: 'site',
-    label: '站点'
+    label: '地块名称'
   },
   {
     value: 'group',
@@ -405,9 +405,21 @@ onMounted(() => {
   opacity: 0;
   border: 1px solid #fff;
 }
+::v-deep .amap-ctrl-list-layer {
+  position: fixed;
+  top: 87%;
+  right: 37%;
+}
 .locationQuery {
   position: fixed;
   top: 20px;
-  right: 40%;
+  left: 5%;
+}
+::v-deep .locationQuery .el-card {
+  background-color: rgb(255, 255, 255, 0.5);
+}
+::v-deep .locationQuery .el-input__wrapper {
+  background-color: rgb(255, 255, 255, 0.7);
+  color: #fff;
 }
 </style>
