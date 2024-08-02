@@ -57,14 +57,14 @@ const initMap = async () => {
   //添加插件
   AMap.plugin(
     [
+      'AMap.AutoComplete',
       'AMap.InfoWindow',
       'AMap.ToolBar',
       'AMap.Scale',
       'AMap.MapType',
       'AMap.MouseTool',
       'AMap.GeoJSON',
-      'AMap.PlaceSearch',
-      'AMap.AutoComplete'
+      'AMap.PlaceSearch'
     ],
     function () {
       let tool = new AMap.ToolBar()
@@ -75,39 +75,38 @@ const initMap = async () => {
       map.addControl(tool)
       map.addControl(scale)
       map.addControl(type)
+      let auto = new AMap.Autocomplete({ input: 'locationQuery', city: '嘉兴市' })
+      //构造地点查询类
+      let placeSearch = new AMap.PlaceSearch({
+        map: map, // 展现结果的地图实例
+        autoFitView: true // 是否自动调整地图视野使绘制的 Marker点都处于视口的可见范围
+      })
+      //关键字查询
+      auto.on('select', select) //注册监听，当选中某条记录时会触发
+      function select(e) {
+        placeSearch.setCity(e.poi.adcode)
+        placeSearch.search(locationQueryValue.value) //关键字查询查询
+      }
+      mouseTool = new AMap.MouseTool(map)
+      mouseTool.on('draw', function (event) {
+        tableData.value.unshift({
+          field0002: '',
+          field0003: '',
+          field0004: '',
+          field0005: event.obj.getOptions().path,
+          railBorderColor: railBorderColor.value,
+          railBottomColor: railBottomColor.value
+        })
+        coveringList.push(event.obj)
+        // 关闭鼠标操作,避免双击区域重复添加
+        mouseTool.close()
+      })
+      loading.value = false
     }
   )
   map.clearMap()
   createShroud()
-  var auto = new AMap.Autocomplete({ input: 'locationQuery', city: '嘉兴市' })
-  //构造地点查询类
-  var placeSearch = new AMap.PlaceSearch({
-    map: map, // 展现结果的地图实例
-    autoFitView: true // 是否自动调整地图视野使绘制的 Marker点都处于视口的可见范围
-  })
-
-  //关键字查询
-  auto.on('select', select) //注册监听，当选中某条记录时会触发
-  function select(e) {
-    placeSearch.setCity(e.poi.adcode)
-    placeSearch.search(locationQueryValue.value) //关键字查询查询
-  }
   // 事件
-  mouseTool = new AMap.MouseTool(map)
-  mouseTool.on('draw', function (event) {
-    tableData.value.unshift({
-      field0002: '',
-      field0003: '',
-      field0004: '',
-      field0005: event.obj.getOptions().path,
-      railBorderColor: railBorderColor.value,
-      railBottomColor: railBottomColor.value
-    })
-    coveringList.push(event.obj)
-    // 关闭鼠标操作,避免双击区域重复添加
-    mouseTool.close()
-  })
-  loading.value = false
   return AMap
 }
 
