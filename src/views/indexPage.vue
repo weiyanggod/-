@@ -21,6 +21,7 @@ let groupList = reactive([
     label: '土地性质'
   }
 ])
+let loading = ref(true)
 let groupName = ref('group')
 let searchValue = ref()
 let railBorderColor = ref('#ff33ff')
@@ -103,7 +104,10 @@ const initMap = async () => {
       railBottomColor: railBottomColor.value
     })
     coveringList.push(event.obj)
+    // 关闭鼠标操作,避免双击区域重复添加
+    mouseTool.close()
   })
+  loading.value = false
   return AMap
 }
 
@@ -289,7 +293,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <el-row>
+  <el-row v-loading="loading">
     <el-col :span="16">
       <div id="container"></div>
     </el-col>
